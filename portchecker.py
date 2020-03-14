@@ -50,7 +50,10 @@ while True:
     if ip_or_name.replace(".","").isalpha():
         try: 
             ip = socket.gethostbyname(ip_or_name)
-            print(f"Host IP: {ip}")www.google.com
+            print(f"Host IP: {ip}")
+        except socket.gaierror:
+            print(f"Could not resolve host '{ip_or_name}'")
+
     portsgen = createPortsGenerator(input("Ports: "))
 
     print(f"Connecting to '{ip_or_name}'")
