@@ -6,9 +6,12 @@ import socket
 
 try: 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+    s.settimeout(5)
     print("Socket created.")
 except socket.error as err: 
     print(f"Socket creation failed: {err}")
+
+
 
 while True:
     ip_or_name = input("IP/Hostname: ")
@@ -24,6 +27,7 @@ while True:
     port = int(input("Port: "))
 
     try:
+        print(f"Connecting to '{ip_or_name}' at port {port}")
         s.connect((ip,port))
         print(f"{ip}:{port} - Open")
     except socket.error:
