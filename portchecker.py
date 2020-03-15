@@ -1,8 +1,5 @@
 import socket
-
-# AF_INET: Host is a string representing either a hostname in 
-# Internet domain notation like 'daring.cwi.nl' or an IPv4 address like '100.50.200.5'
-# SOCK_STREAM: The default socket type. Uses a TCP protocol connection
+import argparse
 
 def printGreen(text): print(f"\033[92m {text}\033[00m") 
 def printRed(text): print(f"\033[91m {text}\033[00m") 
@@ -10,59 +7,54 @@ def printRed(text): print(f"\033[91m {text}\033[00m")
 '''
 Creates a generator object with all the ports to be checked
 '''
-def createPortsGenerator(port_input):
-    port_input_list = port_input.split(',')
-    #port_list = []
-
+def createPortsGenerator(port_input_list):
     for port_input in port_input_list:
         if not ('-' in port_input):
-            #port_list.append(port_input)
             yield int(port_input)
+            
         else:
             lowest = int(port_input.split('-')[0])
             highest = int(port_input.split('-')[1])
 
             for port in range(lowest,highest+1):
-                # port_list.append(port)
                 yield port
+
+parser = argparse.ArgumentParser(description='Check if given port/ports at given host is/are open.')
+
+parser.add_argument('host', help='The hostname or IP')
+parser.add_argument('-t', '--timeout', default=3, type=int, help="The connection timeout (seconds)")
+parser.add_argument('-p', '--ports', nargs='+', required=True, help="The ports to be checked. Ranges can be defined with '-'")
+
+args = parser.parse_args("www.google.com -p 80".split())
 
 try: 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-    s.settimeout(20)
+    s.settimeout(args.timeout)
     print("Socket created.\n")
 except socket.error as err: 
     print(f"Socket creation failed: {err}")
 
-print("#--------------------------------------------------------#")
-print("# IP/Hostname examples:                                  #")
-print("# www.google.com, 216.58.222.100                         #")
-print("# Check single ports examples:                           #")
-print("# 79,95,7172                                             #")
-print("# For port ranges use '-':                               #")
-print("# 70-90 -> will check all ports from 70 to 90 (inclusive)#")
-print("#--------------------------------------------------------#\n")
 
+ip_or_name = args.host
+ip = ""
 
-while True:
-    ip_or_name = input("IP/Hostname: ")
-    ip = ""
+if ip_or_name.replace(".","").isalpha():
+    try: 
+        ip = socket.gethostbyname(ip_or_name)
+        print(f"Host IP: {ip}")
+    except socket.gaierror:
+        print(f"Could not resolve host '{ip_or_name}'")
 
-    if ip_or_name.replace(".","").isalpha():
-        try: 
-            ip = socket.gethostbyname(ip_or_name)
-            print(f"Host IP: {ip}")
-        except socket.gaierror:
-            print(f"Could not resolve host '{ip_or_name}'")
+portsgen = createPortsGenerator(args.ports)
 
-    portsgen = createPortsGenerator(input("Ports: "))
-
-    print(f"Connecting to '{ip_or_name}'")
-    for port in portsgen:
-        try:
-            s.connect((ip,port))
-            print(f"{ip}:{port} - ", end='')
-            printGreen("Open")
-        except socket.error:
-            print(f"{ip}:{port} - ", end='')
-            printRed("Closed")
-    print("")
+print(f"Connecting to '{ip_or_name}'")
+for port in portsgen:
+    try:
+        s.connect((ip,port))
+        print(f"{ip}:{port} - ", end='')
+        printGreen("Open")
+        s.shutdown(socket.SHUT_RDWR)
+    except socket.error:
+        print(f"{ip}:{port} - ", end='')
+        printRed("Closed")
+print("")
