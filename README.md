@@ -14,5 +14,4 @@ PORTS: Can be a specific list of ports (80 135 445 8080) or a range of ports (75
 
 ## Example
 
-![Image Example]
-(http://i.imgur.com/PnvnjmV.png)
+![Image Example](http://i.imgur.com/PnvnjmV.png)
