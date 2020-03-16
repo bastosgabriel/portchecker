@@ -51,10 +51,10 @@ for port in portsgen:
         printGreen("Open")
         s.shutdown(socket.SHUT_RDWR)
         s.close()
-    except socket.timeout:
+    except socket.error as err:
         print(f"{ip}:{port} - ", end='')
         printRed("Closed")
-    except socket.error as err:
-        print(f"Could not create socket: {err}")
+    #except socket.error as err:
+    #   print(f"Could not create socket: {err}")
 
 print("")
