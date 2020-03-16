@@ -1,5 +1,5 @@
 # Port Checker
-Script that checks if given range of ports are open or not.
+Script that checks if given range of ports are open or not. :door:
 
 ## How to use
 Just execute:
