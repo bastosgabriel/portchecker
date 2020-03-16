@@ -22,18 +22,10 @@ def createPortsGenerator(port_input_list):
 parser = argparse.ArgumentParser(description='Check if given port/ports at given host is/are open.')
 
 parser.add_argument('host', help='The hostname or IP')
-parser.add_argument('-t', '--timeout', default=3, type=int, help="The connection timeout (seconds)")
+parser.add_argument('-t', '--timeout', default=2, type=int, help="The connection timeout (seconds)")
 parser.add_argument('-p', '--ports', nargs='+', required=True, help="The ports to be checked. Ranges can be defined with '-'")
 
-args = parser.parse_args("www.google.com -p 80".split())
-
-try: 
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-    s.settimeout(args.timeout)
-    print("Socket created.\n")
-except socket.error as err: 
-    print(f"Socket creation failed: {err}")
-
+args = parser.parse_args()
 
 ip_or_name = args.host
 ip = ""
@@ -44,17 +36,25 @@ if ip_or_name.replace(".","").isalpha():
         print(f"Host IP: {ip}")
     except socket.gaierror:
         print(f"Could not resolve host '{ip_or_name}'")
+else:
+    ip = ip_or_name
 
 portsgen = createPortsGenerator(args.ports)
 
 print(f"Connecting to '{ip_or_name}'")
 for port in portsgen:
     try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+        s.settimeout(args.timeout)
         s.connect((ip,port))
         print(f"{ip}:{port} - ", end='')
         printGreen("Open")
         s.shutdown(socket.SHUT_RDWR)
-    except socket.error:
+        s.close()
+    except socket.timeout:
         print(f"{ip}:{port} - ", end='')
         printRed("Closed")
+    except socket.error as err:
+        print(f"Could not create socket: {err}")
+
 print("")
